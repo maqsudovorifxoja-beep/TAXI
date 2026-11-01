@@ -13,6 +13,9 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "draco3d": "^1.5.9",
     "vite": "^8.3.5"
   },
   "dependencies": {

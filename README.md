@@ -10,9 +10,9 @@ Toshkent ko‘chalari. Bitta mashina. Cheksiz smena. Rapier 3D fizika dvigateli,
 - **Mashinalar to'plami (Cars Collection)**:
   - **Tesla Model S Plaid (2025)**: 1,020 ot kuchi, Tri-Motor to'liq tortuvchi (AWD), 0-100 km/soat 2.1 soniyada, to'liq panoramali shisha tom, futuristik kiber LED yoritgichlar, aerodinamik splitter va orqa lip spoiler, reaktiv uchish (Flight Mode) imkoniyati.
   - **Chevrolet Lacetti Gentra (Tashkent "Bunker" Tuning)**: 1.5 DOHC tuning (Stage 2), to'liq qoraytirilgan "Bunker" qora uslub, orqa qanotlar, bo'lingan xrom panjara va tilla Chevrolet nishoni, bodring tuman chiroqlari, uchburchakli Gentra orqa chiroqlari va quyma disklari.
-  - **BMW M5 G90 Sedan (2025)**: Frozen Deep Matte Black/Grey bo'yoq, Iconic Glow yoritiladigan konturli radiator panjaralari, vertikal dual-dagger LED faralar, agressiv old trapesiya bamper, M Carbon sopol oltin kaliperlar va 21 dyuymli disklar, 927 ot kuchi, tovushdan tez uchish rejimi.
+  - **BMW M5 G90 Sedan (2025)**: Frozen Deep Matte Black/Grey bo'yoq, Iconic Glow yoritiladigan konturli radiator panjaralari, vertikal dual-dagger LED faralar, agressiv old trapesiya bamper, M Carbon sopol oltin kaliperlar va 21 dyuymli disklar, 927 ot kuchi, 340 km/soat, optimallashtirilgan tejamkor yoqilg'i sarfi (gaz bosilganda benzin ortiqcha ketmaydi), tovushdan tez uchish rejimi.
   - **Chevrolet Cobalt**: 1.5 B15D2, Oldi tortuvchi (FWD), 1250 kg, turbo kit o'rnatish imkoniyati.
-  - **Mercedes-Benz C63 AMG**: 6.2L V8 atmosferik (457 ot kuchi / 600 Nm), Orqa tortuvchi (RWD), kuchli drift.
+  - **Mercedes-Benz C63 AMG**: 6.2L V8 Biturbo (650 ot kuchi / 820 Nm), Orqa tortuvchi (RWD), 300+ km/soat (vmax: 340), o'ta tejamkor yoqilg'i sarfi, kuchli drift.
 - **AI Ko'cha Harakati (Traffic)**: Toshkent ko'chalarida harakatlanuvchi **Tesla Plaid**, **Gentra "Bunker"**, **Cobalt**, **Nexia** va **Damas** avtomobillari — xilma-xil ranglar palitrasi, realistik gabaritlar va tirbandlik AI boshqaruvi bilan.
 - **Taksometr va Katta Daromadli Buyurtmalar**: Katta miqdordagi buyurtma to'lovlari (har bir buyurtma uchun 60,000 - 200,000+ so'mgacha daromad, minimal 5% komissiya, saxiy choychaqalar va tez pul ishlash).
 - **wbAUDIO Radio Tizimi**: FM radio pleyeri — Asl Wayne, Abdulla Qurbonov, Sevara Nazarkhan, Mashhurbek Muhammad taronalari bilan.

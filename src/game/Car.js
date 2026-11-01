@@ -171,12 +171,12 @@ export class Car {
       this.handlingGrip = 0.90;
       this.name = "Chevrolet Lacetti Gentra 1.5 DOHC Tuning (Stage 2)";
     } else {
-      this.maxSpeed = 20000000;
-      this.accelRate = 5000;
-      this.brakeRate = 10700;
-      this.turnSpeed = 2.05;
-      this.handlingGrip = 0.88;
-      this.name = "Mercedes-Benz AMG V8 Taxi (Warp 20M)";
+      this.maxSpeed = 32000000;
+      this.accelRate = 6800;
+      this.brakeRate = 11200;
+      this.turnSpeed = 2.40;
+      this.handlingGrip = 0.95;
+      this.name = "Mercedes-Benz AMG V8 Biturbo (300+ km/soat · Tejamkor)";
     }
   }
 
@@ -1365,10 +1365,11 @@ export class Car {
     const handbrake = input.handbrake;
     const nitroPressed = input.nitro && this.nitroFuel > 0 && throttle > 0;
 
-    // Nitro handling
+    // Nitro & Fuel handling (tejamkor sarf: BMW va Mercedes benzinni tez yeb qo'ymasligi uchun)
     if (nitroPressed) {
       this.isNitro = true;
-      this.nitroFuel = Math.max(0, this.nitroFuel - dt * 12);
+      const drainRate = this.carType === 'amg' ? 3.0 : 4.5;
+      this.nitroFuel = Math.max(0, this.nitroFuel - dt * drainRate);
       audioEngine.playNitroSound();
     } else {
       this.isNitro = false;

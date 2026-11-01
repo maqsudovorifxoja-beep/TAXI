@@ -366,7 +366,7 @@ class TashkentTaxiGame {
           bmw: 'BMW M5 G90 · 4.4L V8 M Hybrid (927 HP)',
           tesla: 'Tesla Model S Plaid · Tri-Motor AWD (1,020 HP)',
           gentra: 'Chevrolet Lacetti Gentra · 1.5 DOHC Tuning (Stage 2)',
-          amg: 'Mercedes-AMG · V8 Biturbo'
+          amg: 'Mercedes-AMG · V8 Biturbo (300+ km/s · Tejamkor)'
         };
         const carLabel = carLabels[this.selectedCarType] || this.playerCar.name;
         if (this.hudCarName) this.hudCarName.textContent = carLabel;
