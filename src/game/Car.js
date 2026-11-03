@@ -1321,9 +1321,9 @@ export class Car {
     this.smokePool = [];
     const smokeGeo = new THREE.SphereGeometry(0.24, 6, 6);
     const smokeMat = new THREE.MeshBasicMaterial({
-      color: 0xdddddd,
+      color: 0x22262e, // To'q qora/kulrang tutun
       transparent: true,
-      opacity: 0.6
+      opacity: 0.72
     });
 
     for (let i = 0; i < 35; i++) {
@@ -1348,8 +1348,8 @@ export class Car {
       p.mesh.material.color.setHex(0x00d8ff); // Glowing cyan nitro blast
       p.mesh.material.opacity = 0.95;
     } else {
-      p.mesh.material.color.setHex(0xe2e8f0);
-      p.mesh.material.opacity = 0.55;
+      p.mesh.material.color.setHex(0x22262e); // To'q qora tutun
+      p.mesh.material.opacity = 0.75;
     }
 
     p.velocity.set(
