@@ -188,9 +188,9 @@ export class MissionManager {
     const distanceMeters = pickupLM.pos.distanceTo(dropoffLM.pos);
     const distanceKm = (distanceMeters / 1000).toFixed(1);
 
-    // Fare calculation: Base 14,000 UZS + ~8,000 UZS per km
-    const baseFare = 14000;
-    const estFare = Math.round((baseFare + distanceMeters * 35) / 1000) * 1000;
+    // Fare calculation: Minimum 1,000,000 UZS base + distance bonus
+    const baseFare = 1000000;
+    const estFare = Math.max(1000000, Math.round((baseFare + distanceMeters * 150) / 10000) * 10000);
 
     this.currentOrder = {
       passenger: passengerData,
@@ -339,13 +339,13 @@ export class MissionManager {
     this.destinationBeacon.visible = false;
     this.navArrows.visible = false;
 
-    // Calculate tip bonus (if patience > 70% and fast)
+    // Calculate tip bonus (if patience > 75% and fast)
     let tip = 0;
     if (this.passengerPatience > 75) {
-      tip = Math.round((this.currentOrder.fare * 0.2) / 1000) * 1000;
+      tip = Math.round((this.currentOrder.fare * 0.25) / 10000) * 10000;
     }
 
-    const totalEarned = this.currentOrder.fare + tip;
+    const totalEarned = Math.max(1000000, this.currentOrder.fare + tip);
     this.balance += totalEarned;
     this.completedRides++;
 
