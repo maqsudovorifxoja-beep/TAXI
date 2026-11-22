@@ -1,0 +1,14 @@
+{
+  "appId": "uz.uchartaksi.tashkent",
+  "appName": "Uchar Taksi",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#07090d"
+    }
+  }
+}
