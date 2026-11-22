@@ -25,33 +25,41 @@ function isOwnerAdmin(){
 try{if(localStorage.getItem('taxi_admin_key')===null)localStorage.setItem('taxi_admin_key','DEV_OWNER');}catch{}
 
 
+
 var MobileTouchControls = {
   input: null,
   car: null,
   onFoot: null,
   career: null,
   camera: null,
+  toggleExitCar: null,
   enabled: false,
   layer: null,
   isTouch: false,
-  init(input, car, onFoot, career, camera) {
+  init(input, car, onFoot, career, camera, toggleExitCar) {
     this.input = input;
     this.car = car;
     this.onFoot = onFoot;
     this.career = career;
     this.camera = camera;
+    this.toggleExitCar = toggleExitCar;
     this.isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024);
     this.createDOM();
     this.bindEvents();
     this.bindCameraSwipe();
-    if (this.isTouch) this.show();
+    if (this.isTouch) {
+      this.show();
+    }
   },
   createDOM() {
-    if (document.getElementById('mobile-touch-layer')) return;
+    if (document.getElementById('mobile-touch-layer')) {
+      this.layer = document.getElementById('mobile-touch-layer');
+      return;
+    }
     let layer = document.createElement('div');
     layer.id = 'mobile-touch-layer';
     layer.className = 'mobile-touch-layer';
-    layer.hidden = true;
+    layer.hidden = !this.isTouch;
     layer.innerHTML = `
       <!-- Left: Steering -->
       <div class="mt-zone mt-left">
@@ -137,30 +145,34 @@ var MobileTouchControls = {
         e.preventDefault(); e.stopPropagation();
         el.classList.add('active');
         if (navigator.vibrate) try { navigator.vibrate(10); } catch{}
-        keys.forEach(k => this.input.keys.add(k));
+        keys.forEach(k => this.input && this.input.keys && this.input.keys.add(k));
       };
       let onEnd = (e) => {
         e.preventDefault();
         el.classList.remove('active');
-        keys.forEach(k => this.input.keys.delete(k));
+        keys.forEach(k => this.input && this.input.keys && this.input.keys.delete(k));
       };
       el.addEventListener('pointerdown', onStart);
       el.addEventListener('pointerup', onEnd);
       el.addEventListener('pointercancel', onEnd);
       el.addEventListener('pointerleave', onEnd);
+      el.addEventListener('touchstart', onStart, { passive: false });
+      el.addEventListener('touchend', onEnd, { passive: false });
+      el.addEventListener('touchcancel', onEnd, { passive: false });
     };
 
     let bindTap = (btnId, callback) => {
       let el = document.getElementById(btnId);
       if (!el) return;
-      el.addEventListener('pointerdown', (e) => {
+      let onAction = (e) => {
         e.preventDefault(); e.stopPropagation();
         el.classList.add('active');
         if (navigator.vibrate) try { navigator.vibrate(15); } catch{}
-        callback();
-      });
-      el.addEventListener('pointerup', () => el.classList.remove('active'));
-      el.addEventListener('pointercancel', () => el.classList.remove('active'));
+        try { callback(); } catch(err) { console.warn(err); }
+        setTimeout(() => el.classList.remove('active'), 150);
+      };
+      el.addEventListener('pointerdown', onAction);
+      el.addEventListener('touchstart', onAction, { passive: false });
     };
 
     bindHold('mt-btn-left', 'KeyA');
@@ -171,17 +183,25 @@ var MobileTouchControls = {
     bindHold('mt-btn-fly-up', ['Space', 'KeyE']);
     bindHold('mt-btn-fly-down', 'KeyQ');
 
-    bindTap('mt-btn-nitro', () => this.input.onAction('turbo'));
-    bindTap('mt-dock-phone', () => this.input.onAction('phone'));
-    bindTap('mt-dock-flight', () => this.input.onAction('flight'));
-    bindTap('mt-dock-exit', () => this.input.onAction('exitCar'));
-    bindTap('mt-dock-cam', () => this.input.onAction('camera'));
-    bindTap('mt-dock-horn', () => {
-      this.input.hornHeld = true;
-      setTimeout(() => this.input.hornHeld = false, 350);
+    bindTap('mt-btn-nitro', () => this.input?.onAction('turbo'));
+    bindTap('mt-dock-phone', () => this.input?.onAction('phone'));
+    bindTap('mt-dock-flight', () => this.input?.onAction('flight'));
+    bindTap('mt-dock-exit', () => {
+      if (typeof this.toggleExitCar === 'function') {
+        this.toggleExitCar();
+      } else if (this.input) {
+        this.input.onAction('exitCar');
+      }
     });
-    bindTap('mt-dock-lights', () => this.input.onAction('lights'));
-    bindTap('mt-dock-reset', () => this.input.onAction('reset'));
+    bindTap('mt-dock-cam', () => this.input?.onAction('camera'));
+    bindTap('mt-dock-horn', () => {
+      if (this.input) {
+        this.input.hornHeld = true;
+        setTimeout(() => this.input.hornHeld = false, 350);
+      }
+    });
+    bindTap('mt-dock-lights', () => this.input?.onAction('lights'));
+    bindTap('mt-dock-reset', () => this.input?.onAction('reset'));
   },
   bindCameraSwipe() {
     let startX = 0, startY = 0, isDragging = false;
@@ -215,11 +235,17 @@ var MobileTouchControls = {
   },
   show() {
     this.enabled = true;
-    if (this.layer) this.layer.hidden = false;
+    if (this.layer) {
+      this.layer.hidden = false;
+      this.layer.style.display = 'block';
+    }
   },
   hide() {
     this.enabled = false;
-    if (this.layer) this.layer.hidden = true;
+    if (this.layer) {
+      this.layer.hidden = true;
+      this.layer.style.display = 'none';
+    }
   },
   update() {
     if (!this.enabled || !this.layer) return;
@@ -260,6 +286,7 @@ var MobileTouchControls = {
     }
   }
 };
+globalThis.MobileTouchControls = MobileTouchControls;
 
 var OnlineTaxiMP = {
   active: true,
@@ -724,7 +751,7 @@ var Skyways = {
   }
 };
 
-async function ss(){let e=ft(rt[Sa().car]),t=Lr();ka(.05,`Fizika dvigateli ishga tushmoqda…`),await Le(),await es();let n=new re,r=new ee(62,innerWidth/innerHeight,.1,6e3),i;try{i=new We($o(`app`),n,r)}catch{$o(`loading`).hidden=!0,$o(`webgl-error`).hidden=!1;return}wn(i.renderer.capabilities.getMaxAnisotropy()),ka(.2,`Yo‘l tarmog‘i chizilmoqda…`),await es();let a=$n(),o=nr(a);n.add(o.group),ka(.45,`Shahar qurilmoqda…`),await es();let s=Xa(a);n.add(s.group);let l=or(a,s.footprints);n.add(l.group),ka(.75,`Cobalt garajdan chiqmoqda…`);let u;try{await e,u=await t}catch(e){throw ka(.75,`Mashina modellari yuklanmadi (models/*.glb)`),e}await es();let d=new gr(n,i,l.materials),f=Sa(),p=ga();Ta(p),f.graphicsAuto&&Object.assign(f,_a(p));let m={x:5.75,z:210,yaw:Math.PI},h=new hn(m.x,m.z,m.yaw,rt[f.car]);h.automatic=f.automatic,h.turbo=f.turbo,n.add(h.model.root);let g=new fi(n,h),_=new gi,v=new Ii(_),y=new ua(a,l.footprints),b=new Ke(i.renderer.domElement),x=new Ze(r),S=new yn(i.renderer,n);try{OnlineTaxiMP.init(n)}catch(e){console.warn("MP init error",e)};try{Skyways.init(n)}catch(e){console.warn("Skyways init error",e)};try{MobileTouchControls.init(b,h,onFoot,j,x)}catch(e){console.warn("Mobile touch init error",e)}x.mode=`cinematic`;let C=new B.EventQueue(!0),w=xr(a),te=new Tr(a,w,n),T=new oi(n,w,te,u),ne=new so(a,w,te,n);T.pedBlock=(e,t)=>ne.crossingBusy(e,t);let E=new _o(w),D=new bo(a,w,te,n),O=new mo(n,o.materials),k=()=>{let e=$o(`flash`);e.classList.remove(`on`),e.offsetWidth,e.classList.add(`on`)},ie=()=>{},j=new zo({net:a,router:E,peds:ne,car:h,stations:s,scene:n,toast:Z,sound:e=>e===`pump`?void 0:_.chime(e),place:(e,t,n)=>{h.reset(e,t,n),D.forget()},openGarage:()=>ie(),hour:()=>F,rain:()=>O.rain}),M=new Yo(j),N=()=>{j.reset(),me(f),Z(`Karyera qaytadan boshlandi`,2e3),R===`menu`&&ve()};M.onTow=()=>j.tow(),D.onViolation=e=>{j.onViolation(e),e.kind===`speed`&&j.finesOn&&k()},ne.onHit=(e,t)=>{_.impact(Math.min(1.6,t/9),`person`),j.onPedestrianHit(t)},ne.onZebra=()=>j.onZebra();let ae=[],oe=-1,P=0,se=new L;T.onHonk=(e,t,n,i)=>{let a=e-r.position.x,o=t-r.position.z,s=Math.hypot(a,o)||1;r.getWorldDirection(se);let c=(a*-se.z+o*se.x)/s/Math.hypot(se.x,se.z),l=Math.min(1,14/(s+6));f.aiVoice!==`off`&&(f.aiVoice===`horn`||!_.voice(l,c*.8))&&_.honk(l,c*.8,n,i)};let ce=new L,le=()=>{let e=h.body.translation(),t=h.body.linvel();return{x:e.x,z:e.z,vx:t.x,vz:t.z}},F=18.9;d.setHour(F);let ue=0,I=null,de=null,fe=0,pe=!1,me=e=>{fe=e.maxFps,pe=e.dayCycle,i.setQuality(e.quality,d.sun,e.resolution),l.trees.setQuality(e.quality),T.setQuality(e.quality),_.volumes={master:e.master,engine:e.engine,radio:e.radio,sfx:e.sfx},_.applyVolumes(),h.automatic=e.automatic,rt[e.car]!==h.spec&&he(),h.turbo=e.turbo&&j.profile.upgrades.turbo&&h.spec.turboKit,_.cylinders=h.spec.cylinders,ne.setDensity(e.pedestrians),O.setMode(e.weather),j.finesOn=e.fines,h.model.setTint(e.tint),h.model.setPaint(e.carColor),T.setDensity(e.traffic),y.showFps=e.showFps,$o(`fps`).hidden=!e.showFps},he=async()=>{let e=rt[f.car];await ft(e),rt[f.car]===e&&h.spec!==e&&(h.setSpec(e),g.attach(),j.replayDents(),me(f),Z(`🚗 ${e.name}`,1800))};me(f);let ge={low:`past`,medium:`o‘rta`,high:`yuqori`},_e=new ya(_a(p),(e,t)=>{Object.assign(f,e),Ca(f),me(f);let n=e.quality?`sifat ${ge[e.quality]}`:e.resolution?`tiniqlik ${Math.round(e.resolution*100)}%`:`transport va piyodalar kamaytirildi`;Z(t===`down`?`⚙ FPS past — grafika moslandi: ${n}`:`⚙ Kompyuter bemalol tortyapti — ${n}`,2600)},()=>f);ka(.92,`Shaderlar tayyorlanmoqda…`),await es(),h.updateVisual(1,0,0),x.update(.016,h,b.look),i.renderer.compile(n,r),ka(1,`Tayyor`),await es(),$o(`loading`).hidden=!0;let R=`menu`,ve=()=>{R=`menu`,j.save();let e=j.profile,t=Math.round((1-h.damage)*100);$o(`menu-profile`).innerHTML=`
+async function ss(){let e=ft(rt[Sa().car]),t=Lr();ka(.05,`Fizika dvigateli ishga tushmoqda…`),await Le(),await es();let n=new re,r=new ee(62,innerWidth/innerHeight,.1,6e3),i;try{i=new We($o(`app`),n,r)}catch{$o(`loading`).hidden=!0,$o(`webgl-error`).hidden=!1;return}wn(i.renderer.capabilities.getMaxAnisotropy()),ka(.2,`Yo‘l tarmog‘i chizilmoqda…`),await es();let a=$n(),o=nr(a);n.add(o.group),ka(.45,`Shahar qurilmoqda…`),await es();let s=Xa(a);n.add(s.group);let l=or(a,s.footprints);n.add(l.group),ka(.75,`Cobalt garajdan chiqmoqda…`);let u;try{await e,u=await t}catch(e){throw ka(.75,`Mashina modellari yuklanmadi (models/*.glb)`),e}await es();let d=new gr(n,i,l.materials),f=Sa(),p=ga();Ta(p),f.graphicsAuto&&Object.assign(f,_a(p));let m={x:5.75,z:210,yaw:Math.PI},h=new hn(m.x,m.z,m.yaw,rt[f.car]);h.automatic=f.automatic,h.turbo=f.turbo,n.add(h.model.root);let g=new fi(n,h),_=new gi,v=new Ii(_),y=new ua(a,l.footprints),b=new Ke(i.renderer.domElement),x=new Ze(r),S=new yn(i.renderer,n);try{OnlineTaxiMP.init(n)}catch(e){console.warn("MP init error",e)};try{Skyways.init(n)}catch(e){console.warn("Skyways init error",e)}x.mode=`cinematic`;let C=new B.EventQueue(!0),w=xr(a),te=new Tr(a,w,n),T=new oi(n,w,te,u),ne=new so(a,w,te,n);T.pedBlock=(e,t)=>ne.crossingBusy(e,t);let E=new _o(w),D=new bo(a,w,te,n),O=new mo(n,o.materials),k=()=>{let e=$o(`flash`);e.classList.remove(`on`),e.offsetWidth,e.classList.add(`on`)},ie=()=>{},j=new zo({net:a,router:E,peds:ne,car:h,stations:s,scene:n,toast:Z,sound:e=>e===`pump`?void 0:_.chime(e),place:(e,t,n)=>{h.reset(e,t,n),D.forget()},openGarage:()=>ie(),hour:()=>F,rain:()=>O.rain}),M=new Yo(j),N=()=>{j.reset(),me(f),Z(`Karyera qaytadan boshlandi`,2e3),R===`menu`&&ve()};M.onTow=()=>j.tow(),D.onViolation=e=>{j.onViolation(e),e.kind===`speed`&&j.finesOn&&k()},ne.onHit=(e,t)=>{_.impact(Math.min(1.6,t/9),`person`),j.onPedestrianHit(t)},ne.onZebra=()=>j.onZebra();let ae=[],oe=-1,P=0,se=new L;T.onHonk=(e,t,n,i)=>{let a=e-r.position.x,o=t-r.position.z,s=Math.hypot(a,o)||1;r.getWorldDirection(se);let c=(a*-se.z+o*se.x)/s/Math.hypot(se.x,se.z),l=Math.min(1,14/(s+6));f.aiVoice!==`off`&&(f.aiVoice===`horn`||!_.voice(l,c*.8))&&_.honk(l,c*.8,n,i)};let ce=new L,le=()=>{let e=h.body.translation(),t=h.body.linvel();return{x:e.x,z:e.z,vx:t.x,vz:t.z}},F=18.9;d.setHour(F);let ue=0,I=null,de=null,fe=0,pe=!1,me=e=>{fe=e.maxFps,pe=e.dayCycle,i.setQuality(e.quality,d.sun,e.resolution),l.trees.setQuality(e.quality),T.setQuality(e.quality),_.volumes={master:e.master,engine:e.engine,radio:e.radio,sfx:e.sfx},_.applyVolumes(),h.automatic=e.automatic,rt[e.car]!==h.spec&&he(),h.turbo=e.turbo&&j.profile.upgrades.turbo&&h.spec.turboKit,_.cylinders=h.spec.cylinders,ne.setDensity(e.pedestrians),O.setMode(e.weather),j.finesOn=e.fines,h.model.setTint(e.tint),h.model.setPaint(e.carColor),T.setDensity(e.traffic),y.showFps=e.showFps,$o(`fps`).hidden=!e.showFps},he=async()=>{let e=rt[f.car];await ft(e),rt[f.car]===e&&h.spec!==e&&(h.setSpec(e),g.attach(),j.replayDents(),me(f),Z(`🚗 ${e.name}`,1800))};me(f);let ge={low:`past`,medium:`o‘rta`,high:`yuqori`},_e=new ya(_a(p),(e,t)=>{Object.assign(f,e),Ca(f),me(f);let n=e.quality?`sifat ${ge[e.quality]}`:e.resolution?`tiniqlik ${Math.round(e.resolution*100)}%`:`transport va piyodalar kamaytirildi`;Z(t===`down`?`⚙ FPS past — grafika moslandi: ${n}`:`⚙ Kompyuter bemalol tortyapti — ${n}`,2600)},()=>f);ka(.92,`Shaderlar tayyorlanmoqda…`),await es(),h.updateVisual(1,0,0),x.update(.016,h,b.look),i.renderer.compile(n,r),ka(1,`Tayyor`),await es(),$o(`loading`).hidden=!0;let R=`menu`,ve=()=>{R=`menu`,j.save();let e=j.profile,t=Math.round((1-h.damage)*100);$o(`menu-profile`).innerHTML=`
       <div class="pc-head"><span class="pc-label">Haydovchi hamyoni</span><span class="chip">⭐ ${j.rating.toFixed(2)}</span></div>
       <b class="pc-money${e.money<0?` neg`:``}">${Y(e.money)}</b>
       <div class="pc-stats">
@@ -750,4 +777,5 @@ let toggleExitCar=()=>{
     Z(`🚶 Mashinadan tushdingiz! [W/A/S/D] Yurish · [Shift] Yugurish · [Space] Sakrash · [F] Qaytish`,4500);
   }
 };
+try{MobileTouchControls.init(b,h,onFoot,j,x,toggleExitCar)}catch(e){console.warn("Mobile touch init error",e)};
 let Oe=new Ki(v,_,e=>b.onAction(e));addEventListener(`keydown`,e=>{e.code===`Enter`&&R===`menu`&&!za()&&!(document.activeElement instanceof HTMLButtonElement)&&ye()}),addEventListener(`keydown`,e=>{R===`drive`&&e.code.startsWith(`Digit`)&&M.key(e.code)}),document.addEventListener(`visibilitychange`,()=>{document.hidden&&be()}),addEventListener(`beforeunload`,()=>j.save()),ie=()=>{R===`drive`&&(R=`paused`,_.suspend(),v.pause(),La(`Avtoservis`,Ka(j,()=>me(f)),Se))},h.onEvent=e=>{e.type===`pop`?(_.pop(e.strength),g.backfire(e.strength)):e.type===`bov`?_.bov(e.strength):e.type===`shift`&&!h.automatic&&_.shift()};let ke=new A,Ae=new L,je=e=>{let t=h.body.translation(),n=h.body.linvel(),r=h.body.rotation(),i=Ae.set(0,0,1).applyQuaternion(ke.set(r.x,r.y,r.z,r.w));ae.length=0,ae.push({x:t.x,z:t.z,vx:n.x,vz:n.z}),T.vehicles(ae),ne.step(ts,P,{x:t.x,z:t.z,vx:n.x,vz:n.z,yaw:Math.atan2(i.x,i.z)},ae),e&&(D.step(P,t.x,t.z,n.x,n.z),j.step(ts,P))},Me=(e,t,n)=>{let r=new L,i=new L,a=0;return V.contactPair(e,t,(e,t)=>{let n=e.normal(),o=t?1:-1;i.set(n.x*o,n.y*o,n.z*o);for(let t=0;t<e.numSolverContacts();t++){let n=e.solverContactPoint(t);n&&(r.add(new L(n.x,n.y,n.z)),a++)}}),a?h.dentAt(r.divideScalar(a),i,n):null},z={on:!1,target:0,i:0},Ne=(e,t)=>{if(!z.on)return e;if(e.brake>.05||e.handbrake||h.gear<1)return z.on=!1,Z(`Kruiz-kontrol o‘chdi`,1200),e;if(e.throttle>.05)return z.target=Math.max(z.target,h.speed),z.i=0,e;let n=z.target-h.speed;return z.i=Math.max(-.2,Math.min(.4,z.i+n*t*.06)),{...e,throttle:Math.max(0,Math.min(1,.1+n*.3+z.i))}},Pe=e=>{h.step(ts,e);let t=h.body.linvel();ce.set(t.x,t.y,t.z),T.step(ts,P,le()),P+=ts,V.step(C),h.afterStep(ts),C.drainContactForceEvents(e=>{let t=V.getCollider(e.collider1()),n=V.getCollider(e.collider2());if(!h.isChassisCollider(t)&&!h.isChassisCollider(n))return;let r=e.totalForceMagnitude()/9e4;if(r>.12&&_.impact(Math.min(2,r),He(h.isChassisCollider(t)?n:t)),r>.25&&P-oe>.5){oe=P;let e=h.isChassisCollider(t)?t:n;j.onImpact(Math.min(2,r),Me(e,e===t?n:t,Math.min(2,r)))}if(r>.12){let e=h.body.translation(),i=h.body.mass(),a=T.bumped(h.isChassisCollider(t)?n:t,r,{x:e.x,z:e.z,vx:ce.x,vz:ce.z,mass:i});if(a){let e=i/(i+a);h.body.setLinvel({x:ce.x*e,y:ce.y,z:ce.z*e},!0)}}}),je(!0)},Fe=performance.now(),Ie=0,Re=0,ze=0,Be=!1,Ve=0,Ue=new c,Ge=new A,qe=new L,Ye=new L(1,1,1),Xe=e=>{if(requestAnimationFrame(Xe),fe>0&&e-Fe<1e3/fe-1)return;let t=Math.min(.1,(e-Fe)/1e3);if(Fe=e,Re+=t,performance.now(),R===`drive`){_e.enabled=f.graphicsAuto,_e.frame(t),Ie+=t;try{OnlineTaxiMP.update(t,h,f)}catch(e){};try{MobileTouchControls.update()}catch(e){};try{Skyways.update(t,h,j,Z)}catch(e){}let e=0,ctrlInput=Ne(b.drive(),t);for(;Ie>=ts&&e<5;)Pe(ctrlInput),Ie-=ts,ze+=ts,e++;if(e===5&&(Ie=0),De(t),ue-=t,I){I.t=Math.min(1,I.t+t/is);let e=I.t,n=I.easeIn?e*e*(3-2*e):1-(1-e)*(1-e);F=(I.from+I.delta*n)%24;let r=I.t>=1;d.setHour(F,r||ue<=0),ue<=0&&(ue=.25),r&&(I=null)}else pe&&(F=(F+t*ns)%24),ue<=0&&(d.setHour(F),ue=.5)}else R===`menu`&&(h.step(ts,as),T.step(ts,P,le()),P+=ts,V.step(C),h.afterStep(ts),je(!1));performance.now();for(let e of l.props){if(e.body.isSleeping())continue;let t=e.body.translation(),n=e.body.rotation();Ue.compose(qe.set(t.x,t.y,t.z),Ge.set(n.x,n.y,n.z,n.w),Ye),e.mesh.setMatrixAt(e.index,Ue),e.mesh.instanceMatrix.needsUpdate=!0}let{indL:n,indR:a}=h.updateVisual(R===`drive`?Ie/ts:1,t,Re);te.update(P),T.setNight(d.nightFactor),o.setNight(d.nightFactor),T.render(R===`drive`?Ie/ts:1,r.position),ne.render(R===`drive`?Ie/ts:1),j.frame(Re),O.update(t,Re,r.position,d.nightFactor),Math.abs(d.overcast-O.overcast)>.01&&(d.overcast=O.overcast,R!==`drive`&&d.setHour(F,!1)),h.surfaceGrip=O.grip,T.paceScale=1-.15*O.wet;let s=n||a;(h.indicator!==0||h.hazard)&&s!==Be&&R===`drive`&&_.tick(),Be=s,h.indicator===0?Ve=0:(Ve=Math.max(Ve,Math.abs(h.steer)),Ve>.45&&Math.abs(h.steer)<.05&&(h.indicator=0,Ve=0)),h.lightsOn=de??d.nightFactor>.45,h.model.setLights({head:h.lightsOn||b.flashHeld,high:b.flashHeld&&R===`drive`,brake:h.brake>.05,reverse:h.gear===-1,indL:n,indR:a,night:d.nightFactor}),h.model.driver.visible=!x.interior,h.model.setInterior(x.interior),performance.now();let c=g.update(t);if(g.setSmokeColor(d.nightFactor),R===`drive`){b.releaseLook(t),_.update({rpm:h.rpm,throttle:h.throttle,boost:Math.max(0,h.boost)/gn.MAX_BOOST,speed:Math.abs(h.speed),slip:Math.max(0,(c-2.4)/4),horn:b.hornHeld,interior:x.interior,rain:O.rain}),_.pump(j.refueling);let e=h.forward;Oe.update(t,F),y.update(t,h,{hour:F,indL:n,indR:a,career:j,cruise:z.on?z.target*3.6:null,radar:D.cameraAhead(h.position.x,h.position.z,e.x,e.z),rain:O.rain}),M.update(t,F),Math.floor(Re*20)!==Math.floor((Re-t)*20)&&h.model.drawCluster(h.rpm,h.kmh,h.gearLabel,h.boostGauge,h.fuel)}performance.now(),x.update(t,onFoot.active?{position:onFoot.pos,quaternion:onFoot.quat,speed:onFoot.speed,gear:1,boost:0,throttle:0,curRot:onFoot.quat,uprightness:1}:h,b.look),d.follow(onFoot.active?onFoot.pos:h.position),r.updateMatrixWorld(),l.trees.update(r),i.render();let u=R===`drive`&&x.interior;S.render(h,u,u&&h.gear===-1)};requestAnimationFrame(Xe),ve()}ss();
