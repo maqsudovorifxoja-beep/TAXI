@@ -43,7 +43,7 @@ var MobileTouchControls = {
     this.career = career;
     this.camera = camera;
     this.toggleExitCar = toggleExitCar;
-    this.isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024);
+    this.isTouch = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) || (window.innerWidth <= 860 && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)));
     this.createDOM();
     this.bindEvents();
     this.bindCameraSwipe();
@@ -234,6 +234,7 @@ var MobileTouchControls = {
     }, { passive: true });
   },
   show() {
+    if (!this.isTouch) return;
     this.enabled = true;
     if (this.layer) {
       this.layer.hidden = false;

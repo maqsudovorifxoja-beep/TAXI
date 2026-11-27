@@ -4,20 +4,23 @@
  * flight altitude, and quick action dock for Tashkent Taxi simulator.
  */
 export class MobileTouchControls {
-  constructor(input, car, onFoot, career, camera) {
+  constructor(input, car, onFoot, career, camera, toggleExitCar) {
     this.input = input;
     this.car = car;
     this.onFoot = onFoot;
     this.career = career;
     this.camera = camera;
+    this.toggleExitCar = toggleExitCar;
     this.enabled = false;
     this.layer = null;
-    this.touchStates = {};
+    this.isTouch = MobileTouchControls.isTouchDevice();
     this.init();
   }
 
   static isTouchDevice() {
-    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024);
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isSmallTouchScreen = (window.innerWidth <= 860) && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+    return isMobileUA || isSmallTouchScreen;
   }
 
   init() {
@@ -25,19 +28,22 @@ export class MobileTouchControls {
     this.bindEvents();
     this.bindCameraSwipe();
 
-    // Auto-enable if touch screen detected
-    if (MobileTouchControls.isTouchDevice()) {
+    // Auto-enable ONLY if real mobile touch device detected
+    if (this.isTouch) {
       this.show();
     }
   }
 
   createDOM() {
-    if (document.getElementById('mobile-touch-layer')) return;
+    if (document.getElementById('mobile-touch-layer')) {
+      this.layer = document.getElementById('mobile-touch-layer');
+      return;
+    }
 
     const layer = document.createElement('div');
     layer.id = 'mobile-touch-layer';
     layer.className = 'mobile-touch-layer';
-    layer.hidden = true;
+    layer.hidden = !this.isTouch;
 
     layer.innerHTML = `
       <!-- Left: Steering -->
@@ -121,123 +127,126 @@ export class MobileTouchControls {
     const bindHold = (btnId, keyCodes) => {
       const el = document.getElementById(btnId);
       if (!el) return;
-
       const keys = Array.isArray(keyCodes) ? keyCodes : [keyCodes];
-
       const onStart = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         el.classList.add('active');
-        if (navigator.vibrate) navigator.vibrate(10);
-        keys.forEach(k => this.input.keys.add(k));
+        if (navigator.vibrate) try { navigator.vibrate(10); } catch{}
+        keys.forEach(k => this.input && this.input.keys && this.input.keys.add(k));
       };
-
       const onEnd = (e) => {
         e.preventDefault();
         el.classList.remove('active');
-        keys.forEach(k => this.input.keys.delete(k));
+        keys.forEach(k => this.input && this.input.keys && this.input.keys.delete(k));
       };
-
       el.addEventListener('pointerdown', onStart);
       el.addEventListener('pointerup', onEnd);
       el.addEventListener('pointercancel', onEnd);
       el.addEventListener('pointerleave', onEnd);
+      el.addEventListener('touchstart', onStart, { passive: false });
+      el.addEventListener('touchend', onEnd, { passive: false });
+      el.addEventListener('touchcancel', onEnd, { passive: false });
     };
 
     const bindTap = (btnId, callback) => {
       const el = document.getElementById(btnId);
       if (!el) return;
-      el.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      const onAction = (e) => {
+        e.preventDefault(); e.stopPropagation();
         el.classList.add('active');
-        if (navigator.vibrate) navigator.vibrate(15);
-        callback();
-      });
-      el.addEventListener('pointerup', () => el.classList.remove('active'));
-      el.addEventListener('pointercancel', () => el.classList.remove('active'));
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch{}
+        try { callback(); } catch(err) { console.warn(err); }
+        setTimeout(() => el.classList.remove('active'), 150);
+      };
+      el.addEventListener('pointerdown', onAction);
+      el.addEventListener('touchstart', onAction, { passive: false });
     };
 
-    // Steering
     bindHold('mt-btn-left', 'KeyA');
     bindHold('mt-btn-right', 'KeyD');
-
-    // Pedals
     bindHold('mt-btn-gas', 'KeyW');
     bindHold('mt-btn-brake', 'KeyS');
     bindHold('mt-btn-handbrake', 'Space');
-
-    // Flight altitude
     bindHold('mt-btn-fly-up', ['Space', 'KeyE']);
     bindHold('mt-btn-fly-down', 'KeyQ');
 
-    // Nitro / Turbo
-    bindTap('mt-btn-nitro', () => this.input.onAction('turbo'));
-
-    // Quick dock
-    bindTap('mt-dock-phone', () => this.input.onAction('phone'));
-    bindTap('mt-dock-flight', () => this.input.onAction('flight'));
-    bindTap('mt-dock-exit', () => this.input.onAction('exitCar'));
-    bindTap('mt-dock-cam', () => this.input.onAction('camera'));
-    bindTap('mt-dock-horn', () => {
-      this.input.hornHeld = true;
-      setTimeout(() => this.input.hornHeld = false, 350);
+    bindTap('mt-btn-nitro', () => this.input?.onAction('turbo'));
+    bindTap('mt-dock-phone', () => this.input?.onAction('phone'));
+    bindTap('mt-dock-flight', () => this.input?.onAction('flight'));
+    bindTap('mt-dock-exit', () => {
+      if (typeof this.toggleExitCar === 'function') {
+        this.toggleExitCar();
+      } else if (this.input) {
+        this.input.onAction('exitCar');
+      }
     });
-    bindTap('mt-dock-lights', () => this.input.onAction('lights'));
-    bindTap('mt-dock-reset', () => this.input.onAction('reset'));
+    bindTap('mt-dock-cam', () => this.input?.onAction('camera'));
+    bindTap('mt-dock-horn', () => {
+      if (this.input) {
+        this.input.hornHeld = true;
+        setTimeout(() => this.input.hornHeld = false, 350);
+      }
+    });
+    bindTap('mt-dock-lights', () => this.input?.onAction('lights'));
+    bindTap('mt-dock-reset', () => this.input?.onAction('reset'));
   }
 
   bindCameraSwipe() {
     let startX = 0, startY = 0, isDragging = false;
     window.addEventListener('touchstart', (e) => {
       if (e.target.closest('button, .mt-btn, .mt-dock-btn, .order-card, .phone, .menu, #hud')) return;
-      if (e.touches.length === 1) {
+      if (e.touches && e.touches.length === 1) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         isDragging = true;
-        this.input.look.active = true;
+        if (this.input && this.input.look) this.input.look.active = true;
       }
     }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
-      if (!isDragging || !e.touches[0]) return;
+      if (!isDragging || !e.touches || !e.touches[0]) return;
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
-      this.input.look.x += dx * 0.005;
-      this.input.look.y += dy * 0.005;
-      this.input.look.active = true;
+      if (this.input && this.input.look) {
+        this.input.look.x += dx * 0.005;
+        this.input.look.y += dy * 0.005;
+        this.input.look.active = true;
+      }
     }, { passive: true });
 
     window.addEventListener('touchend', () => {
       isDragging = false;
-      this.input.look.active = false;
+      if (this.input && this.input.look) this.input.look.active = false;
     }, { passive: true });
   }
 
   show() {
+    if (!this.isTouch) return;
     this.enabled = true;
-    if (this.layer) this.layer.hidden = false;
+    if (this.layer) {
+      this.layer.hidden = false;
+      this.layer.style.display = 'block';
+    }
   }
 
   hide() {
     this.enabled = false;
-    if (this.layer) this.layer.hidden = true;
+    if (this.layer) {
+      this.layer.hidden = true;
+      this.layer.style.display = 'none';
+    }
   }
 
   update() {
-    if (!this.enabled || !this.layer) return;
-
-    // Check flight mode
+    if (!this.enabled || !this.layer || !this.isTouch) return;
     const isFlight = !!this.car?.flightMode;
     const flyEl = document.getElementById('mt-flight-controls');
     if (flyEl) flyEl.hidden = !isFlight;
-
     const flightLbl = document.getElementById('mt-flight-lbl');
     if (flightLbl) flightLbl.textContent = isFlight ? 'QO‘NISH [Y]' : 'UCHISH [Y]';
 
-    // Check on-foot walking mode
     const isOnFoot = !!this.onFoot?.active;
     const exitIco = document.getElementById('mt-exit-ico');
     const exitLbl = document.getElementById('mt-exit-lbl');

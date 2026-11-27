@@ -20,18 +20,65 @@
   <link rel="modulepreload" crossorigin href="./assets/rapier-BR_-CEU_.js">
   <link rel="stylesheet" crossorigin href="./assets/index-BNDl8WIa.css">
 <style id="mobile-touch-css">
-/* ==================== MOBILE TOUCH CONTROLS ==================== */
+/* ==================== CLEAN RESPONSIVE HUD & DESKTOP SPACING ==================== */
+
+/* Desktop: Clean vertical stacking on top-right */
+.hud-tr {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bmw-flight-hud {
+  position: absolute;
+  top: 68px;
+  right: 20px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(10, 16, 26, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 8px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-family: 'Oxanium', 'Inter', sans-serif;
+  user-select: none;
+}
+
+.order-card {
+  position: absolute;
+  top: 142px;
+  right: 20px;
+  width: 320px;
+  z-index: 60;
+  pointer-events: auto;
+  animation: slideLeft var(--t) var(--ease-spring) both;
+}
+
+/* DESKTOP PC RULE: Hide mobile touch controls completely! */
 .mobile-touch-layer {
+  display: none !important;
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 99999;
+  z-index: 9999;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
 }
-.mobile-touch-layer[hidden] {
-  display: none !important;
+
+/* ONLY show touch controls on mobile viewports (< 960px or coarse touch devices) */
+@media (max-width: 960px), (max-width: 1024px) and (pointer: coarse) {
+  .mobile-touch-layer:not([hidden]) {
+    display: block !important;
+  }
 }
 
 .mt-zone {
@@ -39,36 +86,35 @@
   pointer-events: auto;
   display: flex;
   touch-action: none;
-  z-index: 99999;
 }
 .mt-left {
-  bottom: 24px;
-  left: 18px;
+  bottom: 20px;
+  left: 16px;
 }
 .mt-right {
-  bottom: 24px;
-  right: 18px;
+  bottom: 20px;
+  right: 16px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
 }
 
 .mt-steer-container {
   display: flex;
-  gap: 14px;
+  gap: 12px;
 }
 .mt-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.78);
+  background: rgba(15, 23, 42, 0.82);
   border: 1.5px solid rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   color: #f8fafc;
-  border-radius: 20px;
+  border-radius: 18px;
   font-family: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -85,25 +131,25 @@
 }
 
 .mt-steer {
-  width: 76px;
-  height: 76px;
+  width: 68px;
+  height: 68px;
 }
 .mt-steer svg {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   stroke: #ffffff;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
 }
 
 .mt-pedal-row {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: flex-end;
 }
 .mt-pedal-gas {
-  width: 78px;
-  height: 108px;
-  border-radius: 22px;
+  width: 72px;
+  height: 98px;
+  border-radius: 20px;
   background: linear-gradient(145deg, rgba(16, 185, 129, 0.45), rgba(5, 150, 105, 0.75));
   border-color: rgba(52, 211, 153, 0.7);
   box-shadow: 0 8px 24px rgba(5, 150, 105, 0.45);
@@ -114,9 +160,9 @@
   box-shadow: 0 0 25px rgba(52, 211, 153, 0.85);
 }
 .mt-pedal-brake {
-  width: 78px;
-  height: 88px;
-  border-radius: 22px;
+  width: 72px;
+  height: 80px;
+  border-radius: 20px;
   background: linear-gradient(145deg, rgba(239, 68, 68, 0.42), rgba(185, 28, 28, 0.72));
   border-color: rgba(248, 113, 113, 0.7);
   box-shadow: 0 8px 24px rgba(220, 38, 38, 0.45);
@@ -127,25 +173,25 @@
   box-shadow: 0 0 25px rgba(248, 113, 113, 0.85);
 }
 .mt-pedal b {
-  font-size: 13.5px;
+  font-size: 13px;
   letter-spacing: 0.5px;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 .mt-pedal small {
-  font-size: 9.5px;
+  font-size: 9px;
   opacity: 0.8;
   letter-spacing: 0.5px;
 }
 
 .mt-upper-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 .mt-btn-round {
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 10px;
 }
 .mt-nitro {
   background: linear-gradient(145deg, rgba(6, 182, 212, 0.45), rgba(8, 145, 178, 0.7));
@@ -164,26 +210,25 @@
   box-shadow: 0 0 20px rgba(251, 191, 36, 0.85);
 }
 .mt-btn-round span {
-  font-size: 19px;
+  font-size: 17px;
 }
 .mt-btn-round small {
-  font-size: 9px;
+  font-size: 8px;
   letter-spacing: 0.4px;
 }
 
 .mt-flight-controls {
   position: absolute;
-  bottom: 145px;
-  right: 18px;
+  bottom: 135px;
+  right: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   pointer-events: auto;
-  z-index: 99999;
 }
 .mt-flight-controls button {
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: rgba(2, 132, 199, 0.7);
   border: 1.5px solid #38bdf8;
@@ -192,27 +237,27 @@
 
 .mt-quick-dock {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
   align-items: flex-end;
   pointer-events: auto;
-  z-index: 99999;
+  z-index: 100;
 }
 .mt-dock-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(15, 23, 42, 0.82);
+  gap: 5px;
+  background: rgba(15, 23, 42, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: #f1f5f9;
-  border-radius: 12px;
-  padding: 7px 13px;
-  font-size: 12.5px;
+  border-radius: 10px;
+  padding: 6px 11px;
+  font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
@@ -237,31 +282,21 @@
 }
 .mt-dock-row {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
+/* ==================== CLEAN MOBILE SCREEN ADAPTATIONS ==================== */
 @media (max-width: 768px) {
   .hud-tl {
-    top: 8px !important;
-    left: 8px !important;
-    padding: 8px 12px !important;
-    min-width: 190px !important;
+    top: 6px !important;
+    left: 6px !important;
+    padding: 6px 10px !important;
+    min-width: 170px !important;
     transform-origin: top left !important;
-    transform: scale(0.85) !important;
+    transform: scale(0.8) !important;
   }
-  .hud-br {
-    bottom: 140px !important;
-    right: 8px !important;
-    transform-origin: bottom right !important;
-    transform: scale(0.72) !important;
-    pointer-events: none !important;
-  }
-  .hud-bl {
-    bottom: 120px !important;
-    left: 8px !important;
-    transform-origin: bottom left !important;
-    transform: scale(0.75) !important;
-    pointer-events: none !important;
+  .hud-tr {
+    display: none !important;
   }
   .headunit {
     display: none !important;
@@ -269,15 +304,31 @@
   .bmw-flight-hud {
     display: none !important;
   }
+  .hud-br {
+    bottom: 125px !important;
+    right: 6px !important;
+    transform-origin: bottom right !important;
+    transform: scale(0.68) !important;
+    pointer-events: none !important;
+  }
+  .hud-bl {
+    bottom: 105px !important;
+    left: 6px !important;
+    transform-origin: bottom left !important;
+    transform: scale(0.7) !important;
+    pointer-events: none !important;
+  }
   .order-card {
-    width: min(340px, 92vw) !important;
-    bottom: 140px !important;
+    top: auto !important;
+    bottom: 135px !important;
     left: 50% !important;
+    right: auto !important;
     transform: translateX(-50%) !important;
+    width: min(340px, 92vw) !important;
   }
   .order-card .offer-btns button {
-    min-height: 44px !important;
-    font-size: 14px !important;
+    min-height: 42px !important;
+    font-size: 13.5px !important;
   }
 }
 </style>
